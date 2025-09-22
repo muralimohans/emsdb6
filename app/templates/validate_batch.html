@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Batch Email Validation{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <h2 class="text-2xl font-bold mb-4">Batch Email Validation</h2>
+
+    <!-- Upload Form -->
+    <form id="batchForm"
+          method="post"
+          action="/email/validate/batch/stream"
+          enctype="multipart/form-data"
+          class="bg-white p-6 rounded-lg shadow-md space-y-4">
+        
+        <input type="file" name="files" multiple required
+               class="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <button type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+            Upload & Validate
+        </button>
+    </form>
+
+    <!-- Progress Bar -->
+    <div id="progressContainer" class="mt-6 hidden">
+        <div class="w-full bg-gray-200 rounded-full h-4">
+            <div id="progressBar" class="bg-blue-600 h-4 rounded-full" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="mt-2 text-sm text-gray-700">0%</p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsContainer" class="mt-6 space-y-4"></div>
+</div>
+
+<script>
+const form = document.getElementById("batchForm");
+const progressContainer = document.getElementById("progressContainer");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const resultsContainer = document.getElementById("resultsContainer");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Reset UI
+    progressContainer.classList.remove("hidden");
+    progressBar.style.width = "0%";
+    progressText.textContent = "0%";
+    resultsContainer.innerHTML = "";
+
+    const formData = new FormData(form);
+
+    const response = await fetch(form.action, { method: "POST", body: formData });
+    if (!response.ok) {
+        alert("Upload failed: " + response.statusText);
+        return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = "";
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process SSE chunks
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop(); // keep unfinished chunk
+
+        for (const part of parts) {
+            if (!part.startsWith("data: ")) continue;
+            const data = part.replace("data: ", "").trim();
+
+            if (data === "[DONE]") {
+                progressText.textContent = "Completed!";
+                progressBar.style.width = "100%";
+                return;
+            }
+
+            let parsed;
+            try {
+                parsed = JSON.parse(data);
+            } catch {
+                console.warn("Invalid JSON chunk:", data);
+                continue;
+            }
+
+            // Update progress
+            progressBar.style.width = parsed.progress + "%";
+            progressText.textContent = parsed.progress + "%";
+
+            if (parsed.result) {
+                const res = parsed.result;
+                const div = document.createElement("div");
+                div.className = "bg-white p-4 rounded shadow border";
+                div.innerHTML = `
+                    <p><strong>Email:</strong> ${res.email}</p>
+                    <p><strong>Score:</strong> ${res.score} / 100</p>
+                    <p><strong>Status:</strong>
+                        <span style="color: ${
+                            res.status === "valid" ? "#10B981" :
+                            res.status === "possibly valid" ? "#F59E0B" :
+                            res.status === "risky" ? "#F97316" : "#EF4444"
+                        }">
+                            ${res.status.charAt(0).toUpperCase() + res.status.slice(1)}
+                        </span>
+                    </p>
+                    <details class="mt-2">
+                        <summary class="cursor-pointer font-semibold">Detailed Checks</summary>
+                        <table class="w-full mt-2 border-t text-left">
+                            ${Object.keys(res.details).map(key => `
+                                <tr class="border-t">
+                                    <td class="px-2 py-1">${key.replace(/_/g,' ').toUpperCase()}</td>
+                                    <td class="px-2 py-1">${
+                                        res.details[key] === true ? '<span class="text-green-500">&#10004;</span>' :
+                                        res.details[key] === false ? '<span class="text-red-500">&#10008;</span>' :
+                                        '-'
+                                    }</td>
+                                </tr>
+                            `).join("")}
+                        </table>
+                    </details>
+                `;
+                resultsContainer.appendChild(div);
+            }
+
+            if (parsed.error) {
+                const div = document.createElement("div");
+                div.className = "bg-red-100 p-4 rounded shadow border border-red-300";
+                div.textContent = `Error: ${parsed.error}`;
+                resultsContainer.appendChild(div);
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

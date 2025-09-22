@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Bulk Email Validation{% endblock %}
+
+{% block content %}
+  <h2 class="text-2xl font-bold mb-4">Bulk Email Validation</h2>
+
+  <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+    <form id="bulkForm" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".txt,.csv" required
+             class="border border-gray-300 rounded px-3 py-2 w-full mb-4">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Upload & Validate
+      </button>
+    </form>
+
+    <!-- Progress Bar -->
+    <div id="progressContainer" class="mt-4 hidden">
+      <div class="w-full bg-gray-200 rounded h-4">
+        <div id="progressBar" class="bg-blue-600 h-4 rounded" style="width: 0%"></div>
+      </div>
+      <p id="progressText" class="mt-1 text-gray-700">0%</p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsContainer" class="mt-6"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("bulkForm");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+    const progressText = document.getElementById("progressText");
+    const resultsContainer = document.getElementById("resultsContainer");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      progressContainer.classList.remove("hidden");
+      progressBar.style.width = "0%";
+      progressText.textContent = "0%";
+      resultsContainer.innerHTML = "";
+
+      const formData = new FormData(form);
+
+      // Upload file, backend should return session_id
+      const response = await fetch("/email/validate/bulk/start", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        progressText.textContent = "Failed to start validation.";
+        return;
+      }
+
+      const { session_id } = await response.json();
+
+      // Connect via WebSocket
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const ws = new WebSocket(`${protocol}//${window.location.host}/ws/validation/progress/${session_id}`);
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (msg.result) {
+          // Update progress bar
+          progressBar.style.width = msg.percent + "%";
+          progressText.textContent = msg.percent + "%";
+
+          // Append result row
+          const div = document.createElement("div");
+          div.className = "bg-white p-3 rounded shadow mb-2 border";
+          div.innerHTML = `
+            <p><strong>Email:</strong> ${msg.result.email}</p>
+            <p><strong>Status:</strong> ${msg.result.status}</p>
+            <p><strong>Score:</strong> ${msg.result.score}</p>
+          `;
+          resultsContainer.appendChild(div);
+        }
+
+        if (msg.done) {
+          progressText.textContent = "Completed!";
+          ws.close();
+        }
+      };
+
+      ws.onerror = () => {
+        progressText.textContent = "Error in WebSocket connection!";
+      };
+    });
+  </script>
+{% endblock %}

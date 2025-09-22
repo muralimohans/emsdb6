@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Email Validation Result{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      Validation Result
+    </h2>
+
+    <div class="space-y-2">
+      <p><strong>Email:</strong> {{ result.email }}</p>
+      <p><strong>Score:</strong> {{ result.score }}</p>
+      <p><strong>Status:</strong> {{ result.status }}</p>
+    </div>
+
+    <h3 class="mt-4 font-semibold text-gray-700">Details:</h3>
+    <ul class="list-disc list-inside space-y-1 mt-2">
+      <li>Syntax: {{ "✅" if result.details.syntax else "❌" }}</li>
+      <li>MX: {{ "✅" if result.details.mx else "❌" }}</li>
+      <li>SPF: {{ "✅" if result.details.spf else "❌" }}</li>
+      <li>DKIM: {{ "✅" if result.details.dkim else "❌" }}</li>
+      <li>SMTP: {{ "✅" if result.details.smtp else "❌" }}</li>
+      <li>Blacklist: {{ "✅" if result.details.blacklist else "❌" }}</li>
+      <li>Role: {{ "✅" if result.details.role else "❌" }}</li>
+      <li>Free: {{ "✅" if result.details.free else "❌" }}</li>
+    </ul>
+
+    <div class="mt-6 text-center">
+      <a href="/email/validate/single" class="text-indigo-600 hover:underline">Validate another email</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

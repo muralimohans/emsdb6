@@ -1,0 +1,48 @@
+<!-- templates/services.html -->
+{% extends "base.html" %}
+
+{% block title %}Services - Email Validator{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-12 px-4">
+  <h1 class="text-4xl font-extrabold text-center text-indigo-600 mb-12">Our Email Validation Services</h1>
+
+  <div class="grid gap-8 md:grid-cols-2">
+    <!-- Feature 1 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Syntax & Format Check</h2>
+      <p class="text-gray-600">Ensure email addresses are properly formatted and follow valid syntax rules.</p>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">MX Record Lookup</h2>
+      <p class="text-gray-600">Verify the domain has valid MX records to receive emails.</p>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">SMTP Validation</h2>
+      <p class="text-gray-600">Perform deep-level checks by connecting with the mail server to verify if the inbox exists.</p>
+    </div>
+
+    <!-- Feature 4 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Disposable & Freemail Detection</h2>
+      <p class="text-gray-600">Identify if the email address comes from temporary or free providers like Gmail or Mailinator.</p>
+    </div>
+
+    <!-- Feature 5 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Catch-All Domain Detection</h2>
+      <p class="text-gray-600">Find out if a domain accepts all emails, which might reduce validation accuracy.</p>
+    </div>
+
+    <!-- Feature 6 -->
+    <div class="bg-white p-6 rounded shadow hover:shadow-lg transition">
+      <h2 class="text-xl font-semibold text-gray-800 mb-2">Bulk Email Validation</h2>
+      <p class="text-gray-600">Upload a CSV and validate thousands of emails in one go — asynchronously and efficiently.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

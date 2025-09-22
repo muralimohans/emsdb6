@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Contact Search{% endblock %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto p-6">
+
+  <h1 class="text-2xl font-bold mb-4">Contact Search</h1>
+
+  <!-- Search Form -->
+  <form method="get" action="/contacts/search" class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <input type="text" name="name" value="{{ name }}" placeholder="Name" class="p-2 border rounded">
+    <input type="text" name="email" value="{{ email }}" placeholder="Email" class="p-2 border rounded">
+    <input type="text" name="company" value="{{ company }}" placeholder="Company" class="p-2 border rounded">
+    <input type="text" name="domain" value="{{ domain }}" placeholder="Domain" class="p-2 border rounded">
+    <select name="search_mode" class="p-2 border rounded">
+      <option value="all" {% if search_mode == "all" %}selected{% endif %}>All</option>
+      <option value="db" {% if search_mode == "db" %}selected{% endif %}>DB</option>
+      <option value="pattern" {% if search_mode == "pattern" %}selected{% endif %}>Pattern</option>
+      <option value="verify" {% if search_mode == "verify" %}selected{% endif %}>Verify</option>
+      <option value="domain" {% if search_mode == "domain" %}selected{% endif %}>Domain/Scraper</option>
+    </select>
+    <button type="submit" class="bg-blue-500 text-white px-4 rounded hover:bg-blue-600">Search</button>
+  </form>
+
+  <!-- Bulk Upload Form -->
+  <form method="post" action="/contacts/search/bulk" enctype="multipart/form-data" class="mb-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="block mb-2 font-medium">Upload CSV File:</label>
+    <div class="flex gap-2 items-center">
+      <input type="file" name="bulk_file" accept=".csv" class="p-2 border rounded">
+      <button type="submit" class="bg-green-500 text-white px-4 rounded hover:bg-green-600">Upload</button>
+    </div>
+    <p class="text-gray-500 text-sm mt-1">CSV must contain columns: name, title, email, phone, company, location.</p>
+  </form>
+
+  {% if contacts %}
+  <div class="overflow-x-auto">
+    <table class="w-full table-auto border-collapse">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 text-left">Name</th>
+          <th class="px-4 py-2 text-left">Title</th>
+          <th class="px-4 py-2 text-left">Email</th>
+          <th class="px-4 py-2 text-left">Phone</th>
+          <th class="px-4 py-2 text-left">Company</th>
+          <th class="px-4 py-2 text-left">Location</th>
+          <th class="px-4 py-2 text-left">Source</th>
+          <th class="px-4 py-2 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in contacts %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="px-4 py-2">{{ c.name or '-' }}</td>
+          <td class="px-4 py-2">{{ c.title or '-' }}</td>
+          <td class="px-4 py-2">{{ c.email or '-' }}</td>
+          <td class="px-4 py-2">{{ c.phone or '-' }}</td>
+          <td class="px-4 py-2">{{ c.company_name or '-' }}</td>
+          <td class="px-4 py-2">{{ c.location or '-' }}</td>
+          <td class="px-4 py-2">
+            {% for s in c.source.split(',') %}
+            <span class="inline-block bg-gray-200 text-gray-800 px-2 py-1 rounded mr-1 text-xs">{{ s.strip() }}</span>
+            {% endfor %}
+          </td>
+          <td class="px-4 py-2">
+            {% if c.email_valid %}
+              <span class="text-green-600 font-bold">✅ Valid</span>
+            {% elif 'Verify' in c.source %}
+              <span class="text-red-600 font-bold">❌ Invalid</span>
+            {% else %}
+              <span class="text-yellow-600 font-bold">⏳ Unknown</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-gray-600">No contacts found. Try adjusting your search filters.</p>
+  {% endif %}
+
+</main>
+{% endblock %}

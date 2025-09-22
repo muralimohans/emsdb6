@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- Quick Access Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {% set tools = [
+      {"href": "/email/validate/single", "icon": "mail", "color": "text-blue-500", "title": "Single Validation", "desc": "Validate one email at a time."},
+      {"href": "/email/validate/multiple", "icon": "layers", "color": "text-purple-500", "title": "Multiple Validation", "desc": "Validate a list of emails."},
+      {"href": "/email/validate/bulk", "icon": "file-text", "color": "text-green-500", "title": "Bulk Validation", "desc": "Upload CSV/TXT files."},
+      {"href": "/email/validate/batch", "icon": "database", "color": "text-yellow-500", "title": "Batch Validation", "desc": "Validate pending emails from DB."}
+    ] %}
+    {% for tool in tools %}
+      <a href="{{ tool.href }}" class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition flex flex-col items-start">
+        <i data-feather="{{ tool.icon }}" class="mb-2 {{ tool.color }}" width="32" height="32"></i>
+        <h2 class="text-lg font-semibold mb-1">{{ tool.title }}</h2>
+        <p class="text-gray-600 text-sm">{{ tool.desc }}</p>
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Uploaded Files & Statistics -->
+  <section class="bg-white p-6 rounded-lg shadow mb-8">
+    <h2 class="text-xl font-bold mb-4">Uploaded Files & Statistics</h2>
+    {% if file_stats %}
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="px-4 py-2 text-left">Filename</th>
+              <th class="px-4 py-2 text-left">Total Emails</th>
+              <th class="px-4 py-2 text-left">Valid</th>
+              <th class="px-4 py-2 text-left">Invalid</th>
+              <th class="px-4 py-2 text-left">Possibly Valid</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in file_stats %}
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ file.filename }}</td>
+                <td class="px-4 py-2">{{ file.total }}</td>
+                <td class="px-4 py-2 text-green-600 font-medium">{{ file.valid }}</td>
+                <td class="px-4 py-2 text-red-600 font-medium">{{ file.invalid }}</td>
+                <td class="px-4 py-2 text-yellow-600 font-medium">{{ file.possible }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-gray-600">No uploaded file data available.</p>
+    {% endif %}
+  </section>
+
+  <!-- Recent Validations -->
+  <section class="bg-white p-6 rounded-lg shadow mb-8">
+    <h2 class="text-xl font-bold mb-4">Recent Validations</h2>
+    {% if recent_validations %}
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="px-4 py-2 text-left">Email</th>
+              <th class="px-4 py-2 text-left">Status</th>
+              <th class="px-4 py-2 text-left">Score</th>
+              <th class="px-4 py-2 text-left">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for val in recent_validations %}
+              <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-2">{{ val.email }}</td>
+                <td class="px-4 py-2">{{ val.status }}</td>
+                <td class="px-4 py-2">{{ val.score }}</td>
+                <td class="px-4 py-2">{{ val.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-gray-600">No recent validations.</p>
+    {% endif %}
+  </section>
+
+  <!-- Overall Progress -->
+  <section class="bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-bold mb-4">Validation Progress</h2>
+    {% if progress %}
+      <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+        <div class="bg-green-500 h-4 rounded-full" style="width: {{ progress.percentage }}%"></div>
+      </div>
+      <p class="text-gray-700">{{ progress.completed }}/{{ progress.total }} emails validated</p>
+    {% else %}
+      <p class="text-gray-600">No progress data available.</p>
+    {% endif %}
+  </section>
+
+  <!-- Live Sessions + Chart -->
+  <section class="mt-8">
+    <h2 class="text-xl font-bold mb-4">Email Validation Dashboard</h2>
+    <p>Total Active Sessions: <span id="totalSessions">0</span></p>
+    <canvas id="summaryChart" width="400" height="200"></canvas>
+
+    <h3 class="mt-4 font-semibold">Session Progress</h3>
+    <div id="sessions"></div>
+  </section>
+</main>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+<script>
+  feather.replace();
+
+  const totalEl = document.getElementById("totalSessions");
+  const sessionsEl = document.getElementById("sessions");
+
+  const ctx = document.getElementById('summaryChart').getContext('2d');
+  const summaryChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Valid', 'Invalid', 'Possibly Valid'],
+      datasets: [{
+        label: 'Email Validation Results',
+        data: [0, 0, 0],
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(255, 206, 86, 0.6)'
+        ],
+        borderWidth: 1
+      }]
+    }
+  });
+
+  const evtSource = new EventSource("/dashboard/progress");
+  evtSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    totalEl.textContent = data.active_sessions.length;
+
+    let totalValid = 0, totalInvalid = 0, totalPossibly = 0;
+    sessionsEl.innerHTML = "";
+
+    data.active_sessions.forEach(s => {
+      totalValid += s.valid || 0;
+      totalInvalid += s.invalid || 0;
+      totalPossibly += s.possibly_valid || 0;
+
+      const box = document.createElement("div");
+      box.className = "session-box mb-4";
+
+      const title = document.createElement("p");
+      title.textContent = `Session: ${s.session_id}`;
+
+      const progressContainer = document.createElement("div");
+      progressContainer.className = "bg-gray-200 rounded h-4";
+
+      const progressBar = document.createElement("div");
+      progressBar.className = "bg-green-600 h-4 rounded text-xs text-white text-center";
+
+      const totalChecked = (s.valid||0) + (s.invalid||0) + (s.possibly_valid||0);
+      const percent = totalChecked ? Math.floor(totalChecked / (totalChecked + 1) * 100) : 0;
+
+      progressBar.style.width = percent + "%";
+      progressBar.textContent = percent + "%";
+
+      progressContainer.appendChild(progressBar);
+      box.appendChild(title);
+      box.appendChild(progressContainer);
+      sessionsEl.appendChild(box);
+    });
+
+    summaryChart.data.datasets[0].data = [totalValid, totalInvalid, totalPossibly];
+    summaryChart.update();
+  }
+</script>
+{% endblock %}

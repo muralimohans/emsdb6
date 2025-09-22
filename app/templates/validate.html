@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Email Validation</h2>
+<form id="singleForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="email" name="email" placeholder="Enter email" required>
+    <button type="submit">Validate</button>
+</form>
+
+<div id="progressContainer" style="margin-top:20px; display:none;">
+    <div id="progressBar" style="width:0%; height:20px; background:green;"></div>
+    <ul id="results"></ul>
+</div>
+
+<script>
+document.getElementById("singleForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const res = await fetch("/email/validate/single", { method: "POST", body: formData });
+    const data = await res.json();
+    const sessionId = data.session_id;
+    const total = data.total;
+
+    document.getElementById("progressContainer").style.display = "block";
+    const resultsEl = document.getElementById("results");
+    const progressBar = document.getElementById("progressBar");
+
+    const evtSource = new EventSource(`/email/validate/progress/${sessionId}`);
+    evtSource.onmessage = function(event){
+        const msg = JSON.parse(event.data);
+        progressBar.style.width = msg.percent + "%";
+        const li = document.createElement("li");
+        li.textContent = `${msg.email} - ${msg.status} - Score: ${msg.score}`;
+        resultsEl.appendChild(li);
+        if(msg.index === msg.total) evtSource.close();
+    }
+});
+</script>
+<script>
+    const socket = new WebSocket("ws://localhost:8000/ws/validation/progress");
+
+    socket.onmessage = function(event) {
+        console.log("Progress:", event.data);
+    };
+
+    socket.onclose = function() {
+        console.log("Connection closed");
+    };
+</script>
+
+{% if result %}
+<p>Result: <b>{{ result.email }}</b> → {{ result.status }}</p>
+{% endif %}
+{% endblock %}

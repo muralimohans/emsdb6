@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Account Settings{% endblock %}
+
+{% block content %}
+<main class="max-w-3xl mx-auto p-6">
+
+  <h1 class="text-2xl font-bold mb-4">Account Settings</h1>
+
+  {% if message %}
+  <div class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4">
+    {{ message }}
+  </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 gap-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <!-- Profile Picture -->
+    <label class="font-medium">Profile Picture:</label>
+    <div class="flex items-center gap-4">
+      <img id="profilePreview" src="{{ user.profile_pic or '/static/images/default-avatar.png' }}" 
+           alt="Profile Pic" class="w-24 h-24 rounded object-cover border">
+      <input type="file" name="profile_pic" accept="image/*" id="profilePicInput" class="p-2 border rounded">
+    </div>
+
+    <!-- Basic Info -->
+    <label class="font-medium">Username:</label>
+    <input type="text" name="username" value="{{ user.username }}" class="p-2 border rounded w-full">
+
+    <label class="font-medium">Email:</label>
+    <input type="email" name="email" value="{{ user.email }}" class="p-2 border rounded w-full">
+
+    <!-- Password Change -->
+    <label class="font-medium">New Password:</label>
+    <div class="relative">
+      <input type="password" name="password" id="password" placeholder="Leave blank to keep current" 
+             class="p-2 border rounded w-full">
+      <button type="button" id="togglePassword" class="absolute right-2 top-2 text-gray-600">
+        👁️
+      </button>
+    </div>
+
+    <label class="font-medium">Confirm Password:</label>
+    <div class="relative">
+      <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm new password" 
+             class="p-2 border rounded w-full">
+      <button type="button" id="toggleConfirmPassword" class="absolute right-2 top-2 text-gray-600">
+        👁️
+      </button>
+    </div>
+
+    <!-- Preferences -->
+    <label class="font-medium flex items-center gap-2">
+      <input type="checkbox" name="notify_email" {% if user.notify_email %}checked{% endif %}>
+      Receive email notifications
+    </label>
+
+    <!-- User ID (readonly) -->
+    <label class="font-medium">User ID:</label>
+    <input type="text" value="{{ user.id }}" class="p-2 border rounded w-full bg-gray-100" disabled>
+
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-2">
+      Update Account
+    </button>
+  </form>
+</main>
+
+<!-- -------------------- -->
+<!-- JS: Profile Preview + Password Toggle -->
+<!-- -------------------- -->
+<script>
+  // Profile picture live preview
+  const profileInput = document.getElementById('profilePicInput');
+  const profilePreview = document.getElementById('profilePreview');
+  profileInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        profilePreview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Password toggle visibility
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
+  togglePassword.addEventListener('click', function() {
+    const type = passwordInput.type === 'password' ? 'text' : 'password';
+    passwordInput.type = type;
+    this.textContent = type === 'password' ? '👁️' : '🙈';
+  });
+
+  const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+  const confirmInput = document.getElementById('confirm_password');
+  toggleConfirmPassword.addEventListener('click', function() {
+    const type = confirmInput.type === 'password' ? 'text' : 'password';
+    confirmInput.type = type;
+    this.textContent = type === 'password' ? '👁️' : '🙈';
+  });
+</script>
+
+{% endblock %}

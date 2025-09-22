@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EMS{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside id="sidebar"
+         class="w-64 bg-white border-r shadow-md transition-transform duration-300
+                {% if not user or user.credits == 0 %}-translate-x-full{% else %}translate-x-0{% endif %}">
+    {% if user and user.credits > 0 %}
+      <nav class="p-4 space-y-2">
+        <div class="text-xs uppercase text-gray-500 font-semibold">Main</div>
+        <a href="/dashboard" class="block px-3 py-2 rounded hover:bg-indigo-100">🏠 Dashboard</a>
+        <div class="text-xs uppercase text-gray-500 font-semibold mt-4">Email Validation</div>
+        <a href="/email/validate/single" class="block px-3 py-2 rounded hover:bg-indigo-100">📧 Single Email Validation</a>
+        <a href="/email/validate/multiple" class="block px-3 py-2 rounded hover:bg-indigo-100">📧 Multiple Email Validation</a>
+        <a href="/email/validate/bulk" class="block px-3 py-2 rounded hover:bg-indigo-100">📂 Bulk Email Validation</a>
+        <a href="/email/validate/batch" class="block px-3 py-2 rounded hover:bg-indigo-100">🗄 Batch Email Validation</a>
+        
+        <div class="text-xs uppercase text-gray-500 font-semibold mt-4">Email Finder</div>
+        <a href="/contacts/search" class="block px-3 py-2 rounded hover:bg-indigo-100">🗄 Email Finder</a>
+        <div class="text-xs uppercase text-gray-500 font-semibold mt-4">Account</div>
+        <a href="/account/settings" class="block px-3 py-2 rounded hover:bg-indigo-100">⚙️ Account Settings</a>
+        <a href="/support" class="block px-3 py-2 rounded hover:bg-indigo-100">📞 Support</a>
+        <a href="/buy-credits" class="block px-3 py-2 rounded hover:bg-indigo-100 font-semibold text-green-600">💳 Buy Credits</a>
+        <a href="/logout" class="block px-3 py-2 rounded hover:bg-red-100 text-red-600">🚪 Logout</a>
+      </nav>
+    {% endif %}
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Navbar -->
+    <header id="navbar"
+            class="px-6 py-3 flex justify-between items-center border-b
+                   {% if user %}bg-indigo-200 text-indigo-900 border-indigo-300
+                   {% else %}bg-indigo-100 text-indigo-800 border-indigo-200{% endif %}">
+      <!-- Left: Logo -->
+      <div class="text-lg font-semibold">✨ Welcome</div>
+
+      <!-- Right: Navbar Items -->
+      <div class="flex items-center space-x-4">
+        {% if user %}
+          {% if user.credits > 0 %}
+            <span>Your credits: <strong>{{ user.credits }}</strong></span>
+          {% else %}
+            <span class="text-red-600">Out of credits!</span>
+            <a href="/buy-credits" class="text-blue-500 underline">Buy More</a>
+          {% endif %}
+          <a href="/logout" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Logout</a>
+        {% else %}
+          <a href="/" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Home</a>
+          <a href="/about" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">About</a>
+          <a href="/services" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Services</a>
+          <a href="/features" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Features</a>
+          <a href="/pricing" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Pricing</a>
+          <a href="/login" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Login</a>
+          <a href="/register" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">Register</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="p-6 flex-1">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+</body>
+</html>

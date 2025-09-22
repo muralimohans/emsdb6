@@ -1,0 +1,43 @@
+<!-- templates/features.html -->
+{% extends "base.html" %}
+
+{% block title %}Features - Email Validator{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-12">
+  <h1 class="text-4xl font-extrabold text-center text-indigo-600 mb-10">Powerful Features to Supercharge Your Email Validation</h1>
+
+  <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+    <!-- Feature Card -->
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">Syntax Check</h2>
+      <p class="text-gray-600">Detect common email format issues instantly using robust regex-based rules.</p>
+    </div>
+
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">Domain Validation</h2>
+      <p class="text-gray-600">Ensure domains have valid DNS and MX records configured to receive emails.</p>
+    </div>
+
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">SMTP Ping</h2>
+      <p class="text-gray-600">Connect with mail servers to check if specific inboxes exist and are reachable.</p>
+    </div>
+
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">Catch-All Detection</h2>
+      <p class="text-gray-600">Identify domains that accept all emails, making validation less accurate.</p>
+    </div>
+
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">Blacklist Check</h2>
+      <p class="text-gray-600">See if an email domain or IP is listed on spam blacklists.</p>
+    </div>
+
+    <div class="bg-white shadow-md p-6 rounded-lg">
+      <h2 class="text-xl font-bold mb-2 text-indigo-600">CSV Upload & Bulk Validation</h2>
+      <p class="text-gray-600">Quickly validate thousands of emails using our asynchronous background workers.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
