@@ -98,3 +98,11 @@ async def login_user(
     # ✅ Successful login → store user_id in session
     request.session["user_id"] = user.id
     return RedirectResponse(url="/dashboard", status_code=303)
+
+@router.get("/logout")
+async def logout(request: Request):
+    """
+    Logs out the current user by clearing the session.
+    """
+    request.session.clear()  # remove all session data
+    return RedirectResponse(url="/login", status_code=302)
