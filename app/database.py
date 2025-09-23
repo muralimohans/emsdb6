@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
-DATABASE_URL = postgresql://ems6db_7ylj_user:0qVBn3zvhf6OzAzApNXnyGwEh4bGk2UK@dpg-d38osi63jp1c73asruhg-a.oregon-postgres.render.com/ems6db_7ylj
+DATABASE_URL = os.environ.get("DATABASE_URL")  # provided by Render
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL is not set!")
 
@@ -36,6 +36,7 @@ async def get_db() -> AsyncSession:
     """
     async with async_session() as session:
         yield session
+
 
 
 
