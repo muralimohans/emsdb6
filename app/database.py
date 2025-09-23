@@ -1,20 +1,13 @@
+import os
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
-# -----------------------------
-# Database URL
-# -----------------------------
-DATABASE_URL = settings.database_url  # e.g., "postgresql+asyncpg://user:password@db:5432/ems6db"
+DATABASE_URL = os.environ.get("DATABASE_URL")  # provided by Render
 
-# -----------------------------
-# Async Engine
-# -----------------------------
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=True,
-    future=True
-)
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # -----------------------------
 # Base class for models
@@ -31,14 +24,6 @@ async_session = async_sessionmaker(
     autoflush=False
 )
 
-# Optional: synchronous session factory (rarely needed with FastAPI async)
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    class_=AsyncSession  # only use if really needed
-)
-
 # -----------------------------
 # FastAPI dependency
 # -----------------------------
@@ -49,3 +34,4 @@ async def get_db() -> AsyncSession:
     """
     async with async_session() as session:
         yield session
+
