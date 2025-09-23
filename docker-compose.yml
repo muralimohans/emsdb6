@@ -10,32 +10,45 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://ems6db_7ylj_user:0qVBn3zvhf6OzAzApNXnyGwEh4bGk2UK@dpg-d38osi63jp1c73asruhg-a.oregon-postgres.render.com/ems6db_7ylj
-      - SESSION_SECRET=super-secret-key
-      - JWT_ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - DEBUG=True
+      DATABASE_URL=${DATABASE_URL}
+      SESSION_SECRET=${SESSION_SECRET}
+      JWT_ALGORITHM=${JWT_ALGORITHM}
+      ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      DEBUG=${DEBUG}
 
   db:
     image: postgres:15
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: ems6db_7ylj_user
-      POSTGRES_PASSWORD: 0qVBn3zvhf6OzAzApNXnyGwEh4bGk2UK
-      POSTGRES_DB: ems6db_7ylj
+      POSTGRES_USER=${POSTGRES_USER}
+      POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
+    container_name: redis_cache
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
-
