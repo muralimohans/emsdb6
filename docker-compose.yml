@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/ems6db
+      - DATABASE_URL=postgresql://ems6db_7ylj_user:0qVBn3zvhf6OzAzApNXnyGwEh4bGk2UK@dpg-d38osi63jp1c73asruhg-a.oregon-postgres.render.com/ems6db_7ylj
       - SESSION_SECRET=super-secret-key
       - JWT_ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -23,9 +23,9 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ems6db
+      POSTGRES_USER: ems6db_7ylj_user
+      POSTGRES_PASSWORD: 0qVBn3zvhf6OzAzApNXnyGwEh4bGk2UK
+      POSTGRES_DB: ems6db_7ylj
     ports:
       - "5432:5432"
     volumes:
@@ -38,3 +38,4 @@ services:
 
 volumes:
   postgres_data:
+
