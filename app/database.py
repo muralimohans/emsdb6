@@ -5,6 +5,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
 DATABASE_URL = os.environ.get("DATABASE_URL")  # provided by Render
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set!")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -34,4 +36,5 @@ async def get_db() -> AsyncSession:
     """
     async with async_session() as session:
         yield session
+
 
